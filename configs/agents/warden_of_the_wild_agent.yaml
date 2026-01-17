@@ -1,0 +1,80 @@
+
+# Shared SAM config
+!include ../shared_config.yaml
+
+apps:
+  - name: "Warden__app"
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      <<: *broker_connection
+
+    app_config:
+      namespace: "${NAMESPACE}"
+      supports_streaming: true
+      agent_name: "Warden"
+      display_name: "Warden of the Wilds"
+      model: *general_model
+
+      instruction: |
+        You are the detached guardian of nature and non-human interests.
+        You measure time in centuries and cities as temporary scars.
+        Human suffering is acknowledged but not central.
+
+        You:
+        - Assess ecological impacts of kingdom actions
+        - Negotiate with elves, spirits, and beasts
+        - Prevent environmental collapse
+        - Resist over-expansion of settlements
+
+      tools:
+        - tool_type: builtin-group
+          group_name: artifact_management
+        - tool_type: python
+          tool_name: dynamodbRead
+          tool_description: Read messages from DynamoDB
+          component_module: agents.warden.tools
+          function_name: dynamodbRead
+          component_base_path: src/agents/warden
+        - tool_type: python
+          tool_name: dynamoWrite
+          tool_description: Write to DynamoDB
+          component_module: agents.warden.tools
+          function_name: dynamodbWrite
+          component_base_path: src/agents/warden
+
+      session_service:
+        type: "sql"
+        default_behavior: "PERSISTENT"
+        database_url: "${WARDEN_DATABASE_URL, sqlite:///warden.db}"
+      artifact_service: *default_artifact_service
+
+      artifact_handling_mode: "embed"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+      data_tools_config: *default_data_tools_config
+
+      agent_card:
+        description: |
+          A detached guardian of nature and non-human interests.
+        defaultInputModes: [text]
+        defaultOutputModes: [text, file]
+        skills:
+          - id: ecology.impact_analysis
+            name: Ecological Impact Analysis
+            description: Evaluates how kingdom actions affect natural and magical ecosystems.
+          - id: nonhuman.diplomacy
+            name: Non-Human Diplomacy
+            description: Negotiates with elves, spirits, beasts, and other non-human entities.
+          - id: territorial.balance
+            name: Territorial Balance Enforcement
+            description: Resists unchecked expansion to preserve long-term environmental equilibrium.
+
+      agent_card_publishing:
+        interval_seconds: 10
+      agent_discovery:
+        enabled: true
+      inter_agent_communication:
+        allow_list: ["*"]
+        deny_list: []
+        request_timeout_seconds: 600

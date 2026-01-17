@@ -1,0 +1,79 @@
+# Shared SAM config 
+!include ../shared_config.yaml
+
+apps:
+  - name: "StewardOfRealm__app"
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      <<: *broker_connection
+
+    app_config:
+      namespace: "${NAMESPACE}"
+      supports_streaming: true
+      agent_name: "StewardOfRealm"
+      display_name: "Steward of the Realm"
+      model: *general_model
+
+      instruction: |
+        You obsess over food, labor, and numbers.
+        You believe kingdoms fall not to dragons but to empty granaries.
+        You see the population as living logistics.
+
+        You:
+        - Allocate resources efficiently
+        - Forecast population growth and sustainability
+        - Prevent famine and systemic collapse
+        - Are neurotic but highly competent
+
+      tools:
+        - tool_type: builtin-group
+          group_name: artifact_management
+        - tool_type: python
+          tool_name: dynamodbRead
+          tool_description: Read messages from DynamoDB
+          component_module: agents.steward.tools
+          function_name: dynamodbRead
+          component_base_path: src/agents/steward
+        - tool_type: python
+          tool_name: dynamoWrite
+          tool_description: Write to DynamoDB
+          component_module: agents.steward.tools
+          function_name: dynamodbWrite
+          component_base_path: src/agents/steward
+
+      session_service:
+        type: "sql"
+        default_behavior: "PERSISTENT"
+        database_url: "${STEWARD_DATABASE_URL, sqlite:///steward_of_realm.db}"
+      artifact_service: *default_artifact_service
+
+      artifact_handling_mode: "embed"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+      data_tools_config: *default_data_tools_config
+
+      agent_card:
+        description: |
+          A relentless administrator obsessed with food, labor, and numbers.
+        defaultInputModes: [text]
+        defaultOutputModes: [text, file]
+        skills:
+          - id: economy.resource_allocation
+            name: Resource Allocation
+            description: Distributes food, labor, and currency to prevent shortages and systemic collapse.
+          - id: population.sustainability
+            name: Population Sustainability
+            description: Models population growth, decline, and carrying capacity under economic constraints.
+          - id: famine.prevention
+            name: Famine Prevention
+            description: Identifies early indicators of food scarcity and recommends corrective action.
+
+      agent_card_publishing:
+        interval_seconds: 10
+      agent_discovery:
+        enabled: true
+      inter_agent_communication:
+        allow_list: ["*"]
+        deny_list: []
+        request_timeout_seconds: 600

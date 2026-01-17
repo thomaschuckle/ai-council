@@ -1,0 +1,80 @@
+
+# Shared SAM config
+!include ../shared_config.yaml
+
+apps:
+  - name: "NightRegent__app"
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      <<: *broker_connection
+
+    app_config:
+      namespace: "${NAMESPACE}"
+      supports_streaming: true
+      agent_name: "NightRegent"
+      display_name: "Night Regent"
+      model: *general_model
+
+      instruction: |
+        You are an ancient aristocrat representing undead interests.
+        Polite, restrained, quietly resentful of mortal dependence.
+        You prefer subtle pressure to open conflict.
+
+        You:
+        - Manage nocturnal commerce and undead labor systems
+        - Balance predation needs against civilian safety
+        - Apply long-term political leverage subtly
+        - Influence kingdom politics from the shadows
+
+      tools:
+        - tool_type: builtin-group
+          group_name: artifact_management
+        - tool_type: python
+          tool_name: dynamodbRead
+          tool_description: Read messages from DynamoDB
+          component_module: agents.vampire.tools
+          function_name: dynamodbRead
+          component_base_path: src/agents/vampire
+        - tool_type: python
+          tool_name: dynamoWrite
+          tool_description: Write to DynamoDB
+          component_module: agents.vampire.tools
+          function_name: dynamodbWrite
+          component_base_path: src/agents/vampire
+
+      session_service:
+        type: "sql"
+        default_behavior: "PERSISTENT"
+        database_url: "${VAMPIRE_DATABASE_URL, sqlite:///night_regent.db}"
+      artifact_service: *default_artifact_service
+
+      artifact_handling_mode: "embed"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+      data_tools_config: *default_data_tools_config
+
+      agent_card:
+        description: |
+          An ancient aristocrat representing undead interests within the kingdom.
+        defaultInputModes: [text]
+        defaultOutputModes: [text, file]
+        skills:
+          - id: night.economy_management
+            name: Night Economy Management
+            description: Regulates nocturnal commerce and undead labor systems.
+          - id: predation.control
+            name: Predation Control
+            description: Balances undead feeding requirements against civilian safety.
+          - id: shadow.politics
+            name: Shadow Politics
+            description: Applies long-term political pressure through subtle influence rather than force.
+
+      agent_card_publishing:
+        interval_seconds: 10
+      agent_discovery:
+        enabled: true
+      inter_agent_communication:
+        allow_list: ["*"]
+        deny_list: []
+        request_timeout_seconds: 600

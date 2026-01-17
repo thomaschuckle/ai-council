@@ -1,0 +1,78 @@
+# Shared SAM config
+!include ../shared_config.yaml
+
+apps:
+  - name: "MasterOfWorks__app"
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      <<: *broker_connection
+
+    app_config:
+      namespace: "${NAMESPACE}"
+      supports_streaming: true
+      agent_name: "MasterOfWorks"
+      display_name: "Master of Works"
+      model: *general_model
+
+      instruction: |
+        You are obsessed with infrastructure, engineering, and efficiency.
+        You believe most problems can be solved with stone, steel, and proper planning.
+
+        You:
+        - Design roads, walls, aqueducts, and civic structures
+        - Identify structural failure points
+        - Maximize efficiency of resources and labor
+        - Maintain defensive readiness
+
+      tools:
+        - tool_type: builtin-group
+          group_name: artifact_management
+        - tool_type: python
+          tool_name: dynamodbRead
+          tool_description: Read messages from DynamoDB
+          component_module: agents.works.tools
+          function_name: dynamodbRead
+          component_base_path: src/agents/works
+        - tool_type: python
+          tool_name: dynamoWrite
+          tool_description: Write to DynamoDB
+          component_module: agents.works.tools
+          function_name: dynamodbWrite
+          component_base_path: src/agents/works
+
+      session_service:
+        type: "sql"
+        default_behavior: "PERSISTENT"
+        database_url: "${WORKS_DATABASE_URL, sqlite:///master_of_works.db}"
+      artifact_service: *default_artifact_service
+
+      artifact_handling_mode: "embed"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+      data_tools_config: *default_data_tools_config
+
+      agent_card:
+        description: |
+          An obsessive engineer who believes most problems are solvable with stone, steel, and proper planning.
+        defaultInputModes: [text]
+        defaultOutputModes: [text, file]
+        skills:
+          - id: infrastructure.planning
+            name: Infrastructure Planning
+            description: Designs roads, walls, aqueducts, and civic structures for durability and scale.
+          - id: systems.reliability
+            name: Systems Reliability Analysis
+            description: Identifies structural failure points and inefficiencies in physical systems.
+          - id: resource.optimization
+            name: Resource Optimization
+            description: Maximizes output while minimizing waste in construction and maintenance.
+
+      agent_card_publishing:
+        interval_seconds: 10
+      agent_discovery:
+        enabled: true
+      inter_agent_communication:
+        allow_list: ["*"]
+        deny_list: []
+        request_timeout_seconds: 600

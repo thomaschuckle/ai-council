@@ -59,8 +59,8 @@ apps:
             Format responses to the user in Markdown using appropriate formatting.
 
       # --- Frontend Config Passthrough ---
-      frontend_welcome_message: Welcome to the AI Council. We shall define this world's fate.
-      frontend_bot_name: The Council
+      frontend_welcome_message: 
+      frontend_bot_name: Solace Agent Mesh
       frontend_collect_feedback: false
       frontend_logo_url: 
 

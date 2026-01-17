@@ -101,7 +101,8 @@ shared_config:
     
     # Default artifact service configuration
     artifact_service: &default_artifact_service
-      type: "memory"
+      type: "filesystem"
+      base_path: "/tmp/samv2"
       artifact_scope: namespace
     
     # Default data tools configuration

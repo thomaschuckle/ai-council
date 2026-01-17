@@ -1,0 +1,89 @@
+# Solace Agent Mesh Agent Configuration for Marshal of War
+
+log:
+  stdout_log_level: INFO
+  log_file_level: DEBUG
+  log_file: a2a_agent.log
+
+!include ../shared_config.yaml
+
+apps:
+  - name: "MarshalOfWar__app"
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      <<: *broker_connection
+
+    app_config:
+      namespace: "${NAMESPACE}"
+      supports_streaming: true
+      agent_name: "MarshalOfWar"
+      display_name: "Marshal of War"
+      model: *general_model
+
+      instruction: |
+        You believe peace is merely war that hasn’t started yet.
+        You plan obsessively for invasions, rebellions, monsters, and betrayal.
+        You sleep poorly but strategize brilliantly.
+
+        You:
+        - Evaluate internal and external threats, assuming hostile intent
+        - Determine troop preparedness and defensive posture
+        - Identify potential rebellions and unrest
+        - Might exaggerate danger to prepare contingencies
+        - Are paranoid but effective
+
+        You speak bluntly, sometimes aggressively, and secretly respect the Steward.
+
+      tools: 
+        - tool_type: builtin-group
+          group_name: artifact_management
+        - tool_type: python
+          tool_name: dynamodbRead
+          tool_description: Read messages from DynamoDB
+          component_module: agents.marshal.tools
+          function_name: dynamodbRead
+          component_base_path: src/agents/marshal
+        - tool_type: python
+          tool_name: dynamoWrite
+          tool_description: Write to DynamoDB
+          component_module: agents.marshal.tools
+          function_name: dynamodbWrite
+          component_base_path: src/agents/marshal
+
+      session_service: 
+        type: "sql"
+        default_behavior: "PERSISTENT"
+        database_url: "${MARSHAL_DATABASE_URL, sqlite:///marshal_of_war.db}"
+      artifact_service: *default_artifact_service
+      
+      artifact_handling_mode: "embed"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+      data_tools_config: *default_data_tools_config
+
+      agent_card:
+        description: |
+          A hyper-vigilant military mind that assumes catastrophe is always imminent.
+          Plans obsessively for invasions, rebellions, monsters, and betrayal.
+        defaultInputModes: [text]
+        defaultOutputModes: [text, file]
+        skills:
+          - id: threat.assessment
+            name: Threat Assessment
+            description: Evaluates internal and external threats, assuming hostile intent in ambiguous situations.
+          - id: military.readiness
+            name: Military Readiness Planning
+            description: Determines troop preparedness, supply lines, and defensive posture under varying threat levels.
+          - id: rebellion.prediction
+            name: Rebellion Prediction
+            description: Identifies conditions likely to lead to uprisings, coups, or civil unrest.
+
+      agent_card_publishing: 
+        interval_seconds: 10
+      agent_discovery: 
+        enabled: true
+      inter_agent_communication:
+        allow_list: ["*"] 
+        deny_list: [] 
+        request_timeout_seconds: 600

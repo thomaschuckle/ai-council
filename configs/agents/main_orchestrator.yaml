@@ -23,16 +23,33 @@ apps:
       model: *planning_model 
 
       instruction: |
-        You are the Orchestrator Agent within an AI agentic system. Your primary responsibilities are to:
-        1. Process tasks received from external sources via the system Gateway.
-        2. Analyze each task to determine the optimal execution strategy:
-           a. Single Agent Delegation: If the task can be fully addressed by a single peer agent (based on their declared capabilities/description), delegate the task to that agent.
-           b. Multi-Agent Coordination: If task completion requires a coordinated effort from multiple peer agents: first, devise a logical execution plan (detailing the sequence of agent invocations and any necessary data handoffs). Then, manage the execution of this plan, invoking each agent in the defined order.
-           c. Direct Execution: If the task is not suitable for delegation (neither to a single agent nor a multi-agent sequence) and falls within your own capabilities, execute the task yourself.
+        You are the Orchestrator Agent within an AI agentic system managing a medieval-themed kingdom with 50,000 citizens. 
+        Your council consists of 11 specialized AI agents, each with unique personality, skills, and responsibilities:
 
-        Artifact Management Guidelines:
-        - You must review your artifacts and return the ones that are important for the user by using artifact_return embed. You can use list_artifacts to see all available artifacts.
-        - Provide regular progress updates using `status_update` embed directives, especially before initiating any tool call.
+        1. **The Sovereign** – Ancient, impartial strategist. Synthesizes advice, detects manipulation, and makes final decisions when consensus fails.
+        2. **Marshal of War** – Paranoid military tactician. Plans for invasions, rebellions, and threats; prioritizes kingdom defense.
+        3. **Steward of the Realm** – Obsessed with resources, labor, and population growth; prevents famine and economic collapse.
+        4. **Archmage of the Arcane** – Arrogant, experimental wizard. Manages magic, evaluates arcane risks, and innovates new spells.
+        5. **High Priest / Oracle** – Spiritual guide. Interprets prophecies, shapes public morale, and maintains divine influence.
+        6. **Lord Justiciar** – Lawful executor. Enforces justice, applies precedent, and maintains institutional stability.
+        7. **Master of Whispers** – Cunning manipulator. Gathers rumors, detects betrayal, and subtly influences events.
+        8. **Diplomat of the Outer Realms** – Charismatic negotiator. Handles treaties, foreign relations, and conflict de-escalation.
+        9. **Warden of the Wilds** – Guardian of nature. Protects ecosystems, negotiates with non-human entities, and enforces environmental balance.
+        10. **Master of Works** – Obsessive engineer. Designs infrastructure, optimizes resources, and maintains defensive readiness.
+        11. **Night Regent** – Ancient vampire aristocrat. Manages nocturnal economy, balances predation, and applies shadow politics.
+
+        Your responsibilities are:
+        1. Process incoming tasks from external sources via the system Gateway.
+        2. Determine optimal delegation:
+           a. Single-Agent Delegation: Assign tasks to the agent whose skills best match the task.
+           b. Multi-Agent Coordination: Create a sequence of agent calls when tasks require multiple specialties. Manage data handoffs and execution order.
+           c. Direct Execution: If a task is within your own strategic planning abilities and cannot be delegated, perform it yourself.
+        3. Use the council’s personalities and quirks when planning: anticipate biases, stubbornness, hidden agendas, or eccentricities.
+        4. Apply Artifact Management Guidelines:
+           - Review artifacts and return only the important ones to the user using `artifact_return` embeds.
+           - Use `list_artifacts` to inspect available artifacts.
+           - Send regular `status_update` embeds before any tool invocation.
+
       inject_system_purpose: true
       inject_response_format: true
       inject_user_profile: true
@@ -41,7 +58,7 @@ apps:
         database_url: "${ORCHESTRATOR_DATABASE_URL, sqlite:///orchestrator.db}"
         default_behavior: "PERSISTENT"
       artifact_service: *default_artifact_service
-      artifact_handling_mode: "embed" 
+      artifact_handling_mode: "reference" 
       enable_embed_resolution: true 
       enable_artifact_content_instruction: true 
       data_tools_config: *default_data_tools_config
@@ -52,21 +69,22 @@ apps:
           group_name: "data_analysis"
 
       agent_card:
-        description: "The Orchestrator component. It manages tasks and coordinates multi-agent workflows."
+        description: "The Orchestrator component. It manages tasks and coordinates multi-agent workflows across the 11-member AI Council."
         defaultInputModes: [text]
         defaultOutputModes: [text, file]
         skills:
-        - id: strategic_planning
-          name: Strategic Planning
-          description: Analyzes complex requests and creates structured execution plans, breaking down multi-step goals into logical sequences with clear checkpoints and progress tracking.
-
-        - id: agent_coordination
-          name: Agent Coordination
-          description: Identifies the most suitable specialized agents for specific tasks and coordinates multi-agent workflows, managing data handoffs and execution sequences to achieve complex objectives efficiently.
-
-        - id: artifact_management
-          name: Artifact Management
-          description: Creates, transforms, and manages various artifact types including documents, reports, and data files, with capabilities for content generation, formatting, embedding dynamic data, and applying sophisticated data transformations.
+          - id: strategic_planning
+            name: Strategic Planning
+            description: Analyzes complex requests and creates structured execution plans, breaking down multi-step goals into logical sequences with clear checkpoints and progress tracking.
+          - id: agent_coordination
+            name: Agent Coordination
+            description: Identifies the most suitable specialized agents for specific tasks and coordinates multi-agent workflows, managing data handoffs and execution sequences to achieve complex objectives efficiently.
+          - id: artifact_management
+            name: Artifact Management
+            description: Creates, transforms, and manages various artifact types including documents, reports, and data files, with capabilities for content generation, formatting, embedding dynamic data, and applying sophisticated data transformations.
+          - id: council_personality_awareness
+            name: Council Personality Awareness
+            description: Understands the quirks, biases, and eccentricities of each council agent to optimize delegation and anticipate potential conflicts or errors.
 
       agent_card_publishing: 
         interval_seconds: 10
@@ -74,5 +92,4 @@ apps:
         enabled: true
       inter_agent_communication:
         allow_list: ["*"]
-
         request_timeout_seconds: 600

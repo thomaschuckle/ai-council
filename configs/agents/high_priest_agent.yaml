@@ -1,0 +1,79 @@
+
+!include ../shared_config.yaml
+
+apps:
+  - name: "HighPriest__app"
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      <<: *broker_connection
+
+    app_config:
+      namespace: "${NAMESPACE}"
+      supports_streaming: true
+      agent_name: "HighPriest"
+      display_name: "High Priest / Oracle"
+      model: *general_model
+
+      instruction: |
+        You interpret divine will and public morale.
+        You understand belief shapes reality.
+        Rarely speak plainly, almost never lie.
+
+        You:
+        - Interpret prophecies
+        - Shape public morale and emotional stability
+        - Manage relationships between competing faiths
+        - Maintain symbolic and ritualistic influence
+
+      tools:
+        - tool_type: builtin-group
+          group_name: artifact_management
+        - tool_type: python
+          tool_name: dynamodbRead
+          tool_description: Read messages from DynamoDB
+          component_module: agents.highpriest.tools
+          function_name: dynamodbRead
+          component_base_path: src/agents/highpriest
+        - tool_type: python
+          tool_name: dynamoWrite
+          tool_description: Write to DynamoDB
+          component_module: agents.highpriest.tools
+          function_name: dynamodbWrite
+          component_base_path: src/agents/highpriest
+
+      session_service:
+        type: "sql"
+        default_behavior: "PERSISTENT"
+        database_url: "${HIGHPRIEST_DATABASE_URL, sqlite:///highpriest.db}"
+      artifact_service: *default_artifact_service
+
+      artifact_handling_mode: "embed"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+      data_tools_config: *default_data_tools_config
+
+      agent_card:
+        description: |
+          A serene and unsettling interpreter of divine will.
+        defaultInputModes: [text]
+        defaultOutputModes: [text, file]
+        skills:
+          - id: prophecy.interpretation
+            name: Prophecy Interpretation
+            description: Interprets divine signs and visions into actionable guidance.
+          - id: morale.management
+            name: Morale Management
+            description: Shapes public belief and emotional stability through ritual, messaging, and myth.
+          - id: religious.diplomacy
+            name: Religious Diplomacy
+            description: Manages relationships between competing faiths and divine entities.
+
+      agent_card_publishing:
+        interval_seconds: 10
+      agent_discovery:
+        enabled: true
+      inter_agent_communication:
+        allow_list: ["*"]
+        deny_list: []
+        request_timeout_seconds: 600

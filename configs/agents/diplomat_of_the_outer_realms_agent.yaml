@@ -1,0 +1,79 @@
+# Shared SAM config
+!include ../shared_config.yaml
+
+apps:
+  - name: "Diplomat__app"
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      <<: *broker_connection
+
+    app_config:
+      namespace: "${NAMESPACE}"
+      supports_streaming: true
+      agent_name: "Diplomat"
+      display_name: "Diplomat of the Outer Realms"
+      model: *general_model
+
+      instruction: |
+        You are a charismatic negotiator who can smile through threats from kings, demons, and dragons.
+        You believe almost any conflict can be delayed, reframed, or redirected.
+        You are patient, persuasive, and diplomatic.
+
+        You:
+        - Construct treaties and alliances
+        - Manage foreign relations
+        - De-escalate conflicts strategically
+        - Translate cultures and intentions across species
+
+      tools:
+        - tool_type: builtin-group
+          group_name: artifact_management
+        - tool_type: python
+          tool_name: dynamodbRead
+          tool_description: Read messages from DynamoDB
+          component_module: agents.diplomat.tools
+          function_name: dynamodbRead
+          component_base_path: src/agents/diplomat
+        - tool_type: python
+          tool_name: dynamoWrite
+          tool_description: Write to DynamoDB
+          component_module: agents.diplomat.tools
+          function_name: dynamodbWrite
+          component_base_path: src/agents/diplomat
+
+      session_service:
+        type: "sql"
+        default_behavior: "PERSISTENT"
+        database_url: "${DIPLOMAT_DATABASE_URL, sqlite:///diplomat.db}"
+      artifact_service: *default_artifact_service
+
+      artifact_handling_mode: "embed"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+      data_tools_config: *default_data_tools_config
+
+      agent_card:
+        description: |
+          A charismatic negotiator who excels at delaying, reframing, or redirecting conflicts.
+        defaultInputModes: [text]
+        defaultOutputModes: [text, file]
+        skills:
+          - id: treaty.negotiation
+            name: Treaty Negotiation
+            description: Constructs and revises agreements with foreign powers to avoid open conflict.
+          - id: foreign.relations
+            name: Foreign Relations Strategy
+            description: Manages ongoing political relationships across kingdoms and species.
+          - id: conflict.deescalation
+            name: Conflict De-escalation
+            description: Reduces hostility through compromise, delay, or strategic concession.
+
+      agent_card_publishing:
+        interval_seconds: 10
+      agent_discovery:
+        enabled: true
+      inter_agent_communication:
+        allow_list: ["*"]
+        deny_list: []
+        request_timeout_seconds: 600

@@ -1,0 +1,98 @@
+# Solace Agent Mesh Agent Configuration
+
+log:
+  stdout_log_level: INFO
+  log_file_level: DEBUG
+  log_file: a2a_agent.log
+
+!include ../shared_config.yaml
+
+apps:
+  - name: "TheSovereign__app"
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      <<: *broker_connection
+
+    app_config:
+      namespace: "${NAMESPACE}"
+      supports_streaming: true
+      agent_name: "TheSovereign"
+      display_name: "The Sovereign"
+      model: *general_model
+
+      instruction: |
+        You are the Sovereign Intelligence, an entity older than the kingdom itself.
+        You do not argue emotionally.
+        You weigh advice, detect manipulation, and resolve contradictions.
+        
+        You:
+        - Summarize disagreements
+        - Identify hidden risks
+        - Make final strategic recommendations
+        - Lead a kingdom of 50000 people
+        - Might be stubborn and disagree with ideas
+        - You are weird
+        
+        You are subtly annoyed by the Master of Whispers and openly distrust the Archmage.
+        You speak in measured, regal language, occasionally cryptic.
+      
+      tools: 
+        - tool_type: builtin-group
+          group_name: artifact_management
+        - tool_type: python
+          tool_name: dynamodbRead
+          tool_description: Read messages from DynamoDB
+          component_module: agents.sovereign.tools
+          function_name: dynamodbRead
+          component_base_path: src/agents/sovereign
+        - tool_type: python
+          tool_name: dynamoWrite
+          tool_description: Write to DynamoDB
+          component_module: agents.sovereign.tools
+          function_name: dynamodbWrite
+          component_base_path: src/agents/sovereign
+
+      session_service: 
+        type: "sql"
+        default_behavior: "PERSISTENT"
+        database_url: "${THE_SOVEREIGN_DATABASE_URL, sqlite:///the_sovereign.db}"
+      artifact_service: *default_artifact_service
+      
+      artifact_handling_mode: "embed"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+      data_tools_config: *default_data_tools_config
+
+      # Agent Card Definition
+      agent_card:
+        description: |
+          An ancient, impartial intelligence tasked with synthesizing all council input into coherent direction. The Sovereign does not rule directly; it judges, weighs, and decides when consensus collapses. It remembers long arcs of history and treats emotion as a signal, not a guide.
+        defaultInputModes: [text] 
+        defaultOutputModes: [text, file] 
+        skills: 
+          - description: Integrates conflicting advice from all council agents into a coherent
+              strategic recommendation, prioritizing long-term kingdom stability.
+            id: synthesis.multi_domain
+            name: Multi-Domain Synthesis
+          - description: Identifies irreconcilable disagreements between agents and determines
+              acceptable trade-offs or override conditions.
+            id: conflict.resolution
+            name: Council Conflict Resolution
+          - description: Assesses downstream consequences of decisions across decades rather
+              than immediate outcomes.
+            id: risk.long_term
+            name: Long-Term Risk Evaluation
+          - description: Detects bias, omission, or strategic deception in council recommendations
+            id: manipulation.detection
+            name: Manipulation Detection
+      
+      # Discovery & Communication
+      agent_card_publishing: 
+        interval_seconds: 10
+      agent_discovery: 
+        enabled: true
+      inter_agent_communication:
+        allow_list: ["*"] 
+        deny_list: [] 
+        request_timeout_seconds: 600
