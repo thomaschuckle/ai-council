@@ -1,0 +1,92 @@
+############################
+# Environment & Secrets
+############################
+.env
+.env.*
+!.env.example
+
+############################
+# Frontend (ai-council)
+############################
+ai-council/node_modules/
+ai-council/dist/
+ai-council/build/
+ai-council/.next/
+ai-council/.out/
+ai-council/.cache/
+ai-council/.vite/
+ai-council/coverage/
+ai-council/*.log
+
+############################
+# Node.js / JS / TS (shared)
+############################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+*.tsbuildinfo
+*.map
+
+############################
+# Python (if any agents or scripts)
+############################
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+.venv/
+venv/
+env/
+ENV/
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+############################
+# Docker / Containers
+############################
+docker-compose.override.yml
+docker-compose.local.yml
+
+docker-data/
+volumes/
+*.log
+
+############################
+# Databases / Local state
+############################
+data/
+db/
+*.sqlite
+*.db
+redis-data/
+mongo-data/
+
+############################
+# OS / Editor junk
+############################
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+.vscode/
+!.vscode/extensions.json
+
+.idea/
+*.iml
+
+############################
+# Misc
+############################
+tmp/
+temp/
+logs/
+*.swp
+*.swo
+*.code-workspace
