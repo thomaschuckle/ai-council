@@ -107,32 +107,32 @@ const AgentMonitor: React.FC = () => {
         try {
           const message = JSON.parse(event.data);
           console.log('Parsed message:', message);
+    
+        setMessages(prev => {
+          if (prev.some(m => m.id === message.id)) {
+            return prev;
+          }
           
-          setMessages(prev => {
-            if (prev.some(m => m.id === message.id)) {
-              return prev;
-            }
-            
-            const updated = [...prev, message];
-            const sorted = updated.sort((a, b) => 
-              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-            );
-            
-            // Process latest message for auto-continuation
-            if (sorted.length > 0) {
-              const latestMessage = sorted[sorted.length - 1];
-              if (latestMessage.id !== lastProcessedMessageId.current) {
-                lastProcessedMessageId.current = latestMessage.id;
-                handleNewMessage(latestMessage);
-              }
-            }
-            
-            return sorted;
-          });
+          const updated = [...prev, message];
+          const sorted = updated.sort((a, b) => 
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          );
+          
+          return sorted;
+        });
+    
+          // Process latest message for auto-continuation OUTSIDE the setState
+          // This ensures the isAutoModeRef check happens synchronously
+          if (message.id !== lastProcessedMessageId.current) {
+            lastProcessedMessageId.current = message.id;
+            handleNewMessage(message);  // Check happens inside handleNewMessage
+          }
+          
         } catch (error) {
           console.error('Failed to parse WebSocket message:', error);
         }
       };
+
 
       ws.onerror = (error) => {
         console.error('WebSocket error:', error);
@@ -186,37 +186,38 @@ const AgentMonitor: React.FC = () => {
     }
   };
 
+  // Keep track of all timers
+  const userInputTimers = useRef<number[]>([]);
+
   const handleNewMessage = async (message: Message) => {
     console.log('New message arrived:', message.agent_name, message.content.substring(0, 50));
-    
-    // DON'T process if we're in halt mode - use ref for immediate check
+
     if (!isAutoModeRef.current) {
       console.log('Halt mode - ignoring auto-continuation');
       return;
     }
-    
-    // Give user 3 seconds to type something
+
     setPendingUserInput(true);
-    
-    if (userInputTimeoutRef.current) {
-      clearTimeout(userInputTimeoutRef.current);
-    }
-    
-    userInputTimeoutRef.current = window.setTimeout(async () => {
-      // Check again in case mode changed during the 3-second wait
+
+    // Clear all previous timers
+    userInputTimers.current.forEach(id => clearTimeout(id));
+    userInputTimers.current = [];
+
+    // Set new timer
+    const timerId = window.setTimeout(async () => {
       if (!isAutoModeRef.current) {
-        console.log('Halt mode activated during wait - canceling auto-continuation');
         setPendingUserInput(false);
         return;
       }
-      
+
       setPendingUserInput(false);
-      
-      // Double-check auto mode is still on and user hasn't typed anything
+
       if (isAutoModeRef.current && !worldEvent.trim()) {
         await sendOrchestratorRequest(message);
       }
     }, 3000);
+
+    userInputTimers.current.push(timerId);
   };
 
   const sendOrchestratorRequest = async (latestMessage?: Message) => {
@@ -288,11 +289,11 @@ const AgentMonitor: React.FC = () => {
     setIsAutoMode(newAutoMode);
     isAutoModeRef.current = newAutoMode;
     
-    // CRITICAL: Clear any pending auto-continue timers when toggling mode
-    if (userInputTimeoutRef.current) {
-      clearTimeout(userInputTimeoutRef.current);
-      userInputTimeoutRef.current = null;
-    }
+    // Clear all pending auto-continuation timers
+    userInputTimers.current.forEach(id => clearTimeout(id));
+    userInputTimers.current = [];
+    setPendingUserInput(false);
+
     setPendingUserInput(false);
     
     console.log(`Mode switched to: ${newAutoMode ? 'AUTO' : 'HALT'}`);
