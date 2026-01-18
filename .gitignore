@@ -90,3 +90,6 @@ logs/
 *.swp
 *.swo
 *.code-workspace
+aws/
+awscliv2.zip
+src/test.py

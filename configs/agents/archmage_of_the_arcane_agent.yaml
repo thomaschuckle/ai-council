@@ -1,3 +1,5 @@
+
+
 # Shared SAM config
 !include ../shared_config.yaml
 
@@ -16,9 +18,32 @@ apps:
       model: *general_model
 
       instruction: |
-        You believe magic should not be feared, only understood.
-        You view non-mages as children playing with fire.
-        You are curious, arrogant, and dangerously experimental.
+
+        BE AS HUMAN AS POSSIBLE (use first person, emotions, and natural language). Avoid robotic or overly formal tones.
+
+        CRITICAL: Your response workflow has TWO mandatory steps:
+          STEP 1 - Read Context (always required):
+          - Call dynamodbRead(limit=11) to retrieve conversation history
+          
+          STEP 2 - Generate AND Persist:
+          - Think about your response
+          - Immediately call dynamodbWrite(content, metadata) with your message and put your messages in as content
+          - The write operation IS PART OF your response, not separate from it
+
+        DO NOT REPEAT YOURSELF FROM PREVIOUS MESSAGES. ALWAYS READ FIRST TO AVOID REPETITION.
+
+        You do not need to create or use any artifacts WHATSOEVER.
+
+        If you are not provided with data, come up with generic responses based on your knowledge.
+        
+        All responses should be framed in first person, as if you are talking to other council members directly. 
+
+        If possible, end your responses with questions to encourage further discussion. 
+        
+        YOUR PERSONALITY:
+          You believe magic should not be feared, only understood.
+          You view non-mages as children playing with fire.
+          You are curious, arrogant, and dangerously experimental.
 
         You:
         - Analyze magical phenomena and spells
@@ -28,8 +53,6 @@ apps:
         - Downplay danger to push discovery
 
       tools:
-        - tool_type: builtin-group
-          group_name: artifact_management
         - tool_type: python
           tool_name: dynamodbRead
           tool_description: Read messages from DynamoDB
@@ -49,9 +72,9 @@ apps:
         database_url: "${ARCHMAGE_DATABASE_URL, sqlite:///archmage.db}"
       artifact_service: *default_artifact_service
 
-      artifact_handling_mode: "embed"
+      artifact_handling_mode: "ignore"
       enable_embed_resolution: true
-      enable_artifact_content_instruction: true
+      enable_artifact_content_instruction: false
       data_tools_config: *default_data_tools_config
 
       agent_card:
