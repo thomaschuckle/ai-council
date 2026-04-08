@@ -1,5 +1,7 @@
 # The AI Council
 
+DEVPOST: https://devpost.com/software/the-ai-council
+
 A multi-agent AI system where 11 specialized AI agents govern a medieval fantasy kingdom of 50,000 citizens (if they remember woops). Each agent has distinct personality traits, expertise, and potentially conflicting interests, creating emergent collaborative (and sometimes contentious) decision-making.
 
 ## 🏰 Overview
